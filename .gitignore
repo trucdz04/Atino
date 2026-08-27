@@ -1,0 +1,25 @@
+# dependencies
+/node_modules
+
+# Next.js
+/.next
+/out
+
+# tests
+/coverage
+*.tsbuildinfo
+
+# environment and secrets
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+
+# operating systems and editors
+.DS_Store
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/extensions.json

@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+  APP_URL: http://localhost:5173
+  SESSION_SECRET: ci-only-session-secret-with-at-least-32-characters
+  DATA_CACHE_TTL_MS: "120000"
+  LARK_APP_ID: ci-placeholder
+  LARK_APP_SECRET: ci-placeholder
+  LARK_APP_TOKEN: ci-placeholder
+  LARK_TABLE_ID: ci-placeholder
+  ATINO_CLIENT_ID: ci-placeholder
+  ATINO_CLIENT_SECRET: ci-placeholder
+  ATINO_AUTHORIZATION_URL: https://example.com/authorize
+  ATINO_TOKEN_URL: https://example.com/token
+  ATINO_USERINFO_URL: https://example.com/userinfo
+  ATINO_REDIRECT_URI: http://localhost:5173/auth/callback
+
+jobs:
+  quality:
+    name: Lint, typecheck and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+
+  build:
+    name: Production build
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build standalone application
+        run: npm run build
+
+      - name: Upload standalone build
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: atino-purchase-report-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            .next/standalone
+            .next/static
+            public
