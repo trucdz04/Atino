@@ -6,7 +6,7 @@ import { getEnv } from "@/server/config/env";
 export async function GET(): Promise<NextResponse> {
   if (getEnv().DEPLOYMENT_DEMO_MODE) {
     return NextResponse.json({
-      data: { id: "public-demo", name: "Public Demo", email: "Dữ liệu mẫu" },
+      data: { id: "public-demo", name: "Lark Demo", email: "Public read-only" },
     });
   }
 

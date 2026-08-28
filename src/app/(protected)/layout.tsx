@@ -7,7 +7,7 @@ export default async function ProtectedLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const demoMode = getEnv().DEPLOYMENT_DEMO_MODE;
   const user = demoMode
-    ? { id: "public-demo", name: "Public Demo", email: "Dữ liệu mẫu" }
+    ? { id: "public-demo", name: "Lark Demo", email: "Public read-only" }
     : await requirePageUser();
 
   return (

@@ -26,7 +26,6 @@ src/
 └── server/                  # Code chỉ được chạy phía server
     ├── auth/                # OAuth client, state và session
     ├── config/              # Validation biến môi trường
-    ├── demo/                # Dữ liệu tổng hợp giả lập cho public deployment
     ├── http/                # Timeout/retry
     ├── lark/                # Token cache, pagination, data cache
     └── reports/             # Business rules tính KPI
@@ -65,7 +64,7 @@ Tạo `.env.local` từ `.env.example` và điền các giá trị sau. Những 
 | Biến | Bắt buộc | Mục đích |
 | --- | --- | --- |
 | `APP_URL` | Có | Origin của ứng dụng, local là `http://localhost:5173` |
-| `DEPLOYMENT_DEMO_MODE` | Có | `false` ở local; `true` trên public deployment để bỏ SSO và chỉ dùng dữ liệu mẫu |
+| `DEPLOYMENT_DEMO_MODE` | Có | `false` ở local; `true` trên public deployment để bỏ SSO và đọc bộ dữ liệu demo trực tiếp từ Larkbase |
 | `SESSION_SECRET` | Có | Khóa mã hóa session, tối thiểu 32 ký tự, **server-only** |
 | `DATA_CACHE_TTL_MS` | Có | Thời gian cache snapshot dữ liệu Larkbase, tính bằng millisecond |
 | `LARK_APP_ID` | Có | App ID dùng để lấy tenant access token, **server-only** |
@@ -113,10 +112,10 @@ Workflow nằm tại `.github/workflows/ci.yml`. Pipeline chỉ sử dụng plac
 - Hosting: Vercel, project `trucdz17012003-5736/atino`.
 - Repository GitHub đã được kết nối với Vercel; push vào `main` sẽ tự tạo production deployment mới.
 - Vercel đặt `DEPLOYMENT_DEMO_MODE=true`: truy cập thẳng `/data` và `/report`, không hiển thị Login with ATINO và không gọi OAuth.
-- API trên bản public chỉ trả 8 line-item giả lập có mã `DEMO-*`; không đọc hoặc công khai dữ liệu Larkbase thật.
+- API trên bản public đọc toàn bộ bộ dữ liệu demo trực tiếp từ Larkbase bằng server-side credentials; client không nhận được Lark token hoặc app secret.
 - Toàn bộ credentials được lưu dưới dạng Vercel Secret, không nằm trong source code hoặc GitHub repository.
 
-Deployment này dùng để xác nhận ứng dụng build thành công và cho phép xem an toàn giao diện bảng/báo cáo. OAuth client của đề bài chỉ đăng ký `http://localhost:5173/auth/callback`, vì vậy luồng SSO và dữ liệu Larkbase thật chỉ được hỗ trợ khi chạy local. Muốn bật SSO trên deployment cần đăng ký thêm `https://atino-sigma.vercel.app/auth/callback` tại ATINO HUB và tắt Demo Mode.
+Deployment này công khai bộ dữ liệu Larkbase vì dữ liệu nguồn chỉ là dữ liệu demo của đề bài. OAuth client chỉ đăng ký `http://localhost:5173/auth/callback`, vì vậy luồng SSO hoàn chỉnh vẫn chỉ được hỗ trợ khi chạy local. Muốn bật SSO trên deployment cần đăng ký thêm `https://atino-sigma.vercel.app/auth/callback` tại ATINO HUB và tắt Demo Mode.
 
 ## Luồng xác thực
 
@@ -209,7 +208,7 @@ Thông tin kết nối trong tài liệu đề bài không nên xuất hiện tr
 ## Giới hạn hiện tại
 
 - Cache in-memory phù hợp bài test và single-instance; production nhiều instance nên dùng Redis hoặc shared cache.
-- SSO được chủ động tắt trên Vercel vì ATINO HUB chỉ đăng ký redirect URI localhost. Public deployment dùng dữ liệu giả lập; SSO và dữ liệu thật được kiểm thử ở local.
+- SSO được chủ động tắt trên Vercel vì ATINO HUB chỉ đăng ký redirect URI localhost. Public deployment đọc bộ dữ liệu demo từ Larkbase mà không yêu cầu đăng nhập.
 - Không fuzzy-merge tên sản phẩm vì cần xác nhận nghiệp vụ trước khi gộp các tên gần giống nhau.
 
 ## Trạng thái nộp bài
@@ -218,4 +217,4 @@ Thông tin kết nối trong tài liệu đề bài không nên xuất hiện tr
 - Production: [atino-sigma.vercel.app](https://atino-sigma.vercel.app).
 - Đã hoàn thành các phần kết nối Larkbase, lấy và chuẩn hóa toàn bộ dữ liệu, trang dữ liệu, trang báo cáo và Login with ATINO SSO ở local.
 - GitHub Actions kiểm tra chất lượng và build; Vercel tự động deploy khi nhánh `main` được cập nhật.
-- Phần chưa hỗ trợ: đăng nhập SSO trên Vercel do callback production không được đăng ký tại ATINO HUB; bản public chạy Demo Mode thay thế.
+- Phần chưa hỗ trợ: đăng nhập SSO trên Vercel do callback production không được đăng ký tại ATINO HUB; bản public chạy Demo Mode và đọc Larkbase trực tiếp.
