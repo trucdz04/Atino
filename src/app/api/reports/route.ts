@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 
 import { getApiUser } from "@/server/auth/require-user";
+import { getEnv } from "@/server/config/env";
+import { getDemoPurchaseData } from "@/server/demo/purchase-data";
 import { getPurchaseData } from "@/server/lark/purchase-repository";
 import { buildPurchaseReport } from "@/server/reports/aggregate";
 
 export const runtime = "nodejs";
 
 export async function GET(): Promise<NextResponse> {
+  if (getEnv().DEPLOYMENT_DEMO_MODE) {
+    const data = getDemoPurchaseData();
+    return NextResponse.json({
+      data: buildPurchaseReport(data.items, data.fetchedAt),
+    });
+  }
+
   if (!(await getApiUser())) {
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getSession, isAuthenticated } from "@/server/auth/session";
+import { getEnv } from "@/server/config/env";
 
 const ERROR_MESSAGES: Record<string, string> = {
   access_denied: "Bạn đã từ chối cấp quyền đăng nhập.",
@@ -13,6 +14,7 @@ interface LoginPageProps {
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
+  if (getEnv().DEPLOYMENT_DEMO_MODE) redirect("/data");
   const session = await getSession();
   if (isAuthenticated(session)) redirect("/data");
 

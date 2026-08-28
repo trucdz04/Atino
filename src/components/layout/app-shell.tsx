@@ -4,9 +4,11 @@ import type { AuthenticatedUser } from "@/server/auth/session";
 
 export function AppShell({
   user,
+  demoMode = false,
   children,
 }: {
   user: AuthenticatedUser;
+  demoMode?: boolean;
   children: React.ReactNode;
 }): React.ReactElement {
   const initial = user.name.trim().charAt(0).toUpperCase() || "A";
@@ -39,11 +41,15 @@ export function AppShell({
             <strong>{user.name}</strong>
             <small>{user.email ?? "ATINO account"}</small>
           </span>
-          <form action="/auth/logout" method="post">
-            <button className="icon-button" title="Đăng xuất" type="submit">
-              ↪
-            </button>
-          </form>
+          {demoMode ? (
+            <span className="status status-under-review">Demo</span>
+          ) : (
+            <form action="/auth/logout" method="post">
+              <button className="icon-button" title="Đăng xuất" type="submit">
+                ↪
+              </button>
+            </form>
+          )}
         </div>
       </aside>
 

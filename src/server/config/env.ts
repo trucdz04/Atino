@@ -4,6 +4,10 @@ import { z } from "zod";
 
 const envSchema = z.object({
   APP_URL: z.string().url().default("http://localhost:5173"),
+  DEPLOYMENT_DEMO_MODE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
   SESSION_SECRET: z.string().min(32),
   DATA_CACHE_TTL_MS: z.coerce.number().int().positive().default(120_000),
   LARK_APP_ID: z.string().min(1),

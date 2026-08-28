@@ -16,6 +16,7 @@ concurrency:
 env:
   NEXT_TELEMETRY_DISABLED: "1"
   APP_URL: http://localhost:5173
+  DEPLOYMENT_DEMO_MODE: "false"
   SESSION_SECRET: ci-only-session-secret-with-at-least-32-characters
   DATA_CACHE_TTL_MS: "120000"
   LARK_APP_ID: ci-placeholder

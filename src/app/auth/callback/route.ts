@@ -17,6 +17,10 @@ function loginErrorUrl(reason: string): URL {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  if (getEnv().DEPLOYMENT_DEMO_MODE) {
+    return NextResponse.redirect(new URL("/data", getEnv().APP_URL));
+  }
+
   const error = request.nextUrl.searchParams.get("error");
   const code = request.nextUrl.searchParams.get("code");
   const receivedState = request.nextUrl.searchParams.get("state");
