@@ -75,7 +75,7 @@ Tạo `.env.local` từ `.env.example` và điền các giá trị sau. Những 
 | `ATINO_AUTHORIZATION_URL` | Có | Endpoint authorize của ATINO HUB |
 | `ATINO_TOKEN_URL` | Có | Endpoint đổi authorization code lấy access token, gọi ở server |
 | `ATINO_USERINFO_URL` | Có | Endpoint lấy thông tin người dùng sau đăng nhập |
-| `ATINO_REDIRECT_URI` | Có | Callback đã đăng ký; local là `http://localhost:5173/auth/callback` |
+| `ATINO_REDIRECT_URI` | Có | Callback đã đăng ký trên ATINO HUB: `http://localhost:5173/auth/callback` |
 
 ## Ảnh chụp giao diện
 
@@ -110,10 +110,9 @@ Workflow nằm tại `.github/workflows/ci.yml`. Pipeline chỉ sử dụng plac
 - URL: [https://atino-sigma.vercel.app](https://atino-sigma.vercel.app)
 - Hosting: Vercel, project `trucdz17012003-5736/atino`.
 - Repository GitHub đã được kết nối với Vercel; push vào `main` sẽ tự tạo production deployment mới.
-- Production callback: `https://atino-sigma.vercel.app/auth/callback`.
 - Toàn bộ credentials được lưu dưới dạng Vercel Secret, không nằm trong source code hoặc GitHub repository.
 
-Nếu cấu hình OAuth tại ATINO HUB thay đổi, callback production ở trên phải tiếp tục nằm trong allowlist của OAuth client.
+Deployment này dùng để xác nhận ứng dụng build thành công và hiển thị được giao diện. OAuth client của đề bài chỉ đăng ký `http://localhost:5173/auth/callback`, vì vậy luồng SSO hoàn chỉnh chỉ được hỗ trợ khi chạy local. Bản Vercel không được kỳ vọng đăng nhập thành công; muốn bật SSO trên deployment cần đăng ký thêm `https://atino-sigma.vercel.app/auth/callback` tại ATINO HUB.
 
 ## Luồng xác thực
 
@@ -124,7 +123,7 @@ Nếu cấu hình OAuth tại ATINO HUB thay đổi, callback production ở tr�
 5. Protected layout xác minh session cho page; mỗi API cũng xác minh session độc lập.
 6. `/auth/logout` hủy session.
 
-Redirect URI local phải là `http://localhost:5173/auth/callback`.
+Redirect URI đã được ATINO HUB đăng ký là `http://localhost:5173/auth/callback`, nên luồng xác thực này chỉ chạy end-to-end ở local.
 
 ## Khảo sát và xử lý dữ liệu
 
@@ -206,12 +205,13 @@ Thông tin kết nối trong tài liệu đề bài không nên xuất hiện tr
 ## Giới hạn hiện tại
 
 - Cache in-memory phù hợp bài test và single-instance; production nhiều instance nên dùng Redis hoặc shared cache.
-- SSO của bản deploy có thể không hoạt động nếu ATINO HUB chỉ đăng ký redirect URI localhost.
+- SSO trên Vercel không hoạt động vì ATINO HUB chỉ đăng ký redirect URI localhost. Đây là giới hạn đã biết và được đề bài chấp nhận; deployment chỉ cần build và hiển thị giao diện.
 - Không fuzzy-merge tên sản phẩm vì cần xác nhận nghiệp vụ trước khi gộp các tên gần giống nhau.
 
 ## Trạng thái nộp bài
 
 - Repository public: [github.com/trucdz04/Atino](https://github.com/trucdz04/Atino).
 - Production: [atino-sigma.vercel.app](https://atino-sigma.vercel.app).
-- Đã hoàn thành các phần kết nối Larkbase, lấy và chuẩn hóa toàn bộ dữ liệu, trang dữ liệu, trang báo cáo và Login with ATINO SSO.
+- Đã hoàn thành các phần kết nối Larkbase, lấy và chuẩn hóa toàn bộ dữ liệu, trang dữ liệu, trang báo cáo và Login with ATINO SSO ở local.
 - GitHub Actions kiểm tra chất lượng và build; Vercel tự động deploy khi nhánh `main` được cập nhật.
+- Phần chưa hỗ trợ: đăng nhập SSO trên Vercel do callback production không được đăng ký tại ATINO HUB.
