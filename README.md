@@ -105,6 +105,16 @@ GitHub Actions chạy tự động trên pull request và mỗi lần push vào 
 
 Workflow nằm tại `.github/workflows/ci.yml`. Pipeline chỉ sử dụng placeholder an toàn trong bước build; credentials thật không được đưa vào GitHub Actions hoặc repository. Khi cần deploy production, cấu hình secrets trực tiếp trong GitHub/Vercel thay vì commit `.env.local`.
 
+## Deploy production
+
+- URL: [https://atino-sigma.vercel.app](https://atino-sigma.vercel.app)
+- Hosting: Vercel, project `trucdz17012003-5736/atino`.
+- Repository GitHub đã được kết nối với Vercel; push vào `main` sẽ tự tạo production deployment mới.
+- Production callback: `https://atino-sigma.vercel.app/auth/callback`.
+- Toàn bộ credentials được lưu dưới dạng Vercel Secret, không nằm trong source code hoặc GitHub repository.
+
+Nếu cấu hình OAuth tại ATINO HUB thay đổi, callback production ở trên phải tiếp tục nằm trong allowlist của OAuth client.
+
 ## Luồng xác thực
 
 1. `/auth/login` sinh state ngẫu nhiên, lưu trong encrypted httpOnly cookie rồi redirect đến ATINO HUB.
@@ -202,5 +212,6 @@ Thông tin kết nối trong tài liệu đề bài không nên xuất hiện tr
 ## Trạng thái nộp bài
 
 - Repository public: [github.com/trucdz04/Atino](https://github.com/trucdz04/Atino).
+- Production: [atino-sigma.vercel.app](https://atino-sigma.vercel.app).
 - Đã hoàn thành các phần kết nối Larkbase, lấy và chuẩn hóa toàn bộ dữ liệu, trang dữ liệu, trang báo cáo và Login with ATINO SSO.
-- Chưa có link deploy production. CI/CD hiện kiểm tra chất lượng, build và lưu standalone artifact khi push vào `main`; việc deploy cần chọn nền tảng hosting và đăng ký callback URL production với ATINO HUB.
+- GitHub Actions kiểm tra chất lượng và build; Vercel tự động deploy khi nhánh `main` được cập nhật.
