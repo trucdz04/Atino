@@ -144,10 +144,34 @@ Sau normalization, `lineValue` luôn được tính nhất quán bằng `quantit
 
 ## Định nghĩa báo cáo
 
-- **Tổng số yêu cầu:** số `Request No.` khác nhau, không phải số line-items.
-- **Phân bổ trạng thái:** mỗi request được tính một lần. Nếu các dòng cùng request có nhiều trạng thái, dùng trạng thái của dòng có `Submitted at` mới nhất và hiển thị cảnh báo chất lượng dữ liệu.
-- **Top 5 sản phẩm:** tổng quantity theo tên sản phẩm sau khi trim/gộp khoảng trắng và so sánh không phân biệt hoa thường.
-- **Giá trị theo cơ sở:** tổng `quantity × unitPrice` của các line-items tại cơ sở đó.
+Do một `Request No.` có thể xuất hiện trên nhiều dòng sản phẩm, bốn chỉ số có thể được hiểu theo cả cấp **request** và cấp **line-item**. Ứng dụng chọn và áp dụng nhất quán các định nghĩa sau:
+
+### 1. Tổng số yêu cầu mua hàng
+
+- **Cách hiểu đã chọn:** số lượng `Request No.` phân biệt: `COUNT(DISTINCT Request No.)`.
+- **Không chọn:** tổng số record/line-item trong Larkbase.
+- **Lý do:** một yêu cầu có thể chứa nhiều sản phẩm nên xuất hiện trên nhiều dòng. Đếm record sẽ làm một yêu cầu lớn bị tính nhiều lần và không phản ánh đúng số yêu cầu mua hàng thực tế.
+
+Dashboard vẫn hiển thị thêm “Dòng sản phẩm” như một chỉ số phụ để người đọc phân biệt rõ hai cấp dữ liệu.
+
+### 2. Phân bổ theo trạng thái
+
+- **Cách hiểu đã chọn:** phân bổ ở cấp request; mỗi `Request No.` chỉ đóng góp một đơn vị vào đúng một trạng thái.
+- **Trường hợp các dòng cùng request có trạng thái khác nhau:** chọn trạng thái của dòng có `Submitted at` mới nhất và tăng bộ đếm cảnh báo `inconsistentRequestStatuses`.
+- **Lý do:** trạng thái mô tả vòng đời của toàn bộ yêu cầu, không phải số lượng sản phẩm trong yêu cầu. Dùng dòng mới nhất là giả định gần nhất với trạng thái hiện tại, đồng thời cảnh báo giúp không che giấu bất thường của dữ liệu nguồn.
+
+### 3. Top 5 sản phẩm được yêu cầu nhiều nhất
+
+- **Cách hiểu đã chọn:** xếp hạng theo tổng `Nội dung_Số lượng` của từng sản phẩm trên toàn bộ line-item, không xếp theo số dòng xuất hiện.
+- **Chuẩn hóa tên trước khi nhóm:** trim, gộp khoảng trắng liên tiếp và so sánh không phân biệt hoa/thường. Không fuzzy-merge các tên gần giống nhau.
+- **Thứ tự khi bằng tổng số lượng:** ưu tiên sản phẩm có nhiều line-item hơn, sau đó sắp xếp theo tên để kết quả ổn định.
+- **Lý do:** “được yêu cầu nhiều nhất” được hiểu là nhu cầu về số đơn vị hàng hóa; một dòng có quantity 100 phải có trọng số lớn hơn một dòng có quantity 1. Không fuzzy-merge vì tên gần giống vẫn có thể là hai quy cách sản phẩm khác nhau.
+
+### 4. Tổng giá trị theo cơ sở kinh doanh
+
+- **Cách hiểu đã chọn:** với mỗi line-item, tính `lineValue = Nội dung_Số lượng × Nội dung_Đơn giá`, sau đó cộng `lineValue` theo `Nội dung_Cơ sở kinh doanh`.
+- **Đơn vị hiển thị:** VND; không cộng VAT, chiết khấu hoặc phí khác vì nguồn dữ liệu không cung cấp các trường đó.
+- **Lý do:** đây là cách duy nhất có thể suy ra nhất quán giá trị tiền từ các cột hiện có. Đếm request hoặc cộng đơn giá trực tiếp sẽ sai khi quantity lớn hơn 1.
 
 Mọi báo cáo dùng cùng một normalized snapshot được cache phía server, tránh lệch dữ liệu giữa các widget.
 
